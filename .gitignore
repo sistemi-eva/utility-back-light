@@ -18,7 +18,4 @@ database/*.sqlite
 /utility/rcu
 idea
 tmp
-#.env
 
-
-.env
