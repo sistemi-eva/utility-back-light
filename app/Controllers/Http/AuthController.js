@@ -6,6 +6,9 @@ const RoutePermission = use('App/Models/RoutePermission')
 const Env = use('Env')
 var Crypto = require('crypto')
 const { authenticate } = require('ldap-authentication')
+const bcrypt = require("bcrypt")
+
+const Database = use('Database')
 
 class AuthController {
 
@@ -28,6 +31,35 @@ class AuthController {
       console.log("error",error)
     }
   }
+  
+  async getTenants( {request, response }){
+	  
+	  var tenant = "all";
+	  try {
+		  const DB = Database.connection('rcu')
+		var result = await DB.raw(`SELECT tenant FROM public.tenant WHERE tenant != ?`, [tenant])
+			return response.send({"status": "success", "data": result.rows})
+	  }
+	  catch(e){
+		  return response.send({"status": e.message, "data": []})
+	  }
+  }
+  
+  async getFirstTenant(){
+	  var tenant = "all";
+	  try {
+		  const DB = Database.connection('rcu')
+		var result = await DB.raw(`SELECT tenant FROM public.tenant WHERE tenant != ? limit 1`, [tenant])
+			
+			console.log(result.rows)
+			tenant = result.rows[0].tenant
+	  }
+	  catch(e){
+		  tenant = "non dato";
+	  }
+	  
+	  return tenant
+  }
 
   getNewMemberOf(member_of){
     let temp = []
@@ -40,7 +72,72 @@ class AuthController {
     return {all:temp,usernames:tempUsername}
   }
     //Login 
-  async login ({ request,response }) {
+	
+	
+	
+	async login ({ request,response }) {
+	  
+	  
+    const { username, password } = request.all()
+	
+	const numSaltRounds = 1
+	
+	const mypassword = bcrypt.hashSync("prova123", numSaltRounds)
+	
+	
+	const DB = Database.connection('rcu')
+	
+
+    try {
+		var result = await DB.raw(`SELECT * FROM public.utenti WHERE username = ?`, [username])
+
+		var pwd = result.rows[0].password;
+		var permission = result.rows[0].ruolo;
+		var nominativo = result.rows[0].nominativo
+		var ruolo = result.rows[0].ruolo
+		
+		if(result.rows[0].ruolo != "superadmin"){
+			var tenant = result.rows[0].tenant
+			
+		}
+		else{
+			var tenant = await this.getFirstTenant()
+		}
+		
+		
+		var logged = await bcrypt.compare(password, pwd);
+		
+		if( logged ){
+			
+			 var token =  await Crypto.randomBytes(48).toString('hex');
+			 
+			 
+			 await Token.create({token,username,name: nominativo, member_of: JSON.stringify(ruolo), permissions: JSON.stringify(permission),expired: moment().add(1,'days'),ip_address:request.ip()})
+			 
+			 
+			 return response.send({"status": "success","data": {token:token, tenant: tenant, permissions: JSON.stringify(permission)},"message": `${username} hai effettuato l'accesso correttamente`})
+			 
+			 
+		}
+		else{
+			
+			 return response.status(500).send({"status": "error","code": 500,"data": null,"message": 'LOGIN ERROR'})
+		}
+		
+    } catch (error) {
+      console.log(error)
+	  
+	   return response.status(500).send({"status": "error","code": 500,"data": null,"message": error.message})
+
+    }
+  }
+  
+  
+  
+	
+  async login_old ({ request,response }) {
+	  
+	  
     const { username, password } = request.all()
     console.log(username, password)
     const options = {
@@ -75,6 +172,9 @@ class AuthController {
       }
     }
   }
+  
+  
+  
   //Auth Permissions
   async getPermissions({request,response }){
     try {
@@ -86,7 +186,7 @@ class AuthController {
 
 
 	  
-      return response.send({"status": "success","data": {permissions: JSON.parse(results[0].permissions),member_of: JSON.parse(results[0].member_of)},"message": "Questi sono i tuoi permessi all'interno di PDF-Creator"})
+      return response.send({"status": "success","data": {permissions: JSON.parse(results[0].permissions),member_of: JSON.parse(results[0].member_of)},"message": "Questi sono i tuoi permessi all'interno di Utility"})
     } catch (error) {
       console.log("err",error)
       return response.status(500).send({"status": "error","code": 500,"data": null,"message": error.message})

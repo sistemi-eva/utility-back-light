@@ -16,7 +16,7 @@ module.exports = {
   | interacting with SQL databases.
   |
   */
-  connection: Env.get('DB_CONNECTION', 'pg'),
+  connection: Env.get('DB_CONNECTION', 'rcu'),
 
   /*
   |--------------------------------------------------------------------------
@@ -47,61 +47,9 @@ module.exports = {
   | npm i --save mysql
   |
   */
-  mysql: {
-    client: 'mysql',
-    connection: {
-      host: Env.get('PRIXA_DB_HOST', 'localhost'),
-      port: Env.get('PRIXA_DB_PORT', ''),
-      user: Env.get('PRIXA_DB_USER', 'root'),
-      password: Env.get('PRIXA_DB_PASSWORD', ''),
-      database: Env.get('PRIXA_DB_DATABASE', 'adonis')
-    }
-  },
-
-  pg: {
-    client: 'pg',
-    connection: {
-      host: Env.get('DB_HOST', 'localhost'),
-      port: Env.get('DB_PORT', ''),
-      user: Env.get('DB_USER', 'root'),
-      password: Env.get('DB_PASSWORD', ''),
-      database: Env.get('DB_DATABASE', 'adonis')
-    }
-  },
   
-  areaclienti: {
-    client: 'pg',
-    connection: {
-      host: Env.get('DB_AREACLIENTI_HOST', 'localhost'),
-      port: Env.get('DB_AREACLIENTI_PORT', ''),
-      user: Env.get('DB_AREACLIENTI_USER', 'root'),
-      password: Env.get('DB_AREACLIENTI_PASSWORD', ''),
-      database: Env.get('DB_AREACLIENTI_DATABASE', 'adonis')
-    }
-  },
-
-  fatturazionepassiva: {
-    client: 'pg',
-    connection: {
-      host: Env.get('DB_FATT_PASSIVA_HOST', 'localhost'),
-      port: Env.get('DB_FATT_PASSIVA_PORT', ''),
-      user: Env.get('DB_FATT_PASSIVA_USER', 'root'),
-      password: Env.get('DB_FATT_PASSIVA_PASSWORD', ''),
-      database: Env.get('DB_FATT_PASSIVA_DATABASE', 'adonis')
-    }
-  },
-
-  rcu_ugm: {
-    client: 'pg',
-    connection: {
-      host: Env.get('DB_RCU_UGM_HOST', 'localhost'),
-      port: Env.get('DB_RCU_UGM_PORT', ''),
-      user: Env.get('DB_RCU_UGM_USER', 'root'),
-      password: Env.get('DB_RCU_UGM_PASSWORD', ''),
-      database: Env.get('DB_RCU_UGM_DATABASE', 'adonis')
-    }
-  },
-
+	 
+  
   rcu: {
     client: 'pg',
     connection: {
@@ -112,68 +60,7 @@ module.exports = {
       database: Env.get('DB_RCU_DATABASE', 'adonis')
     }
   },
-
-  ugm: {
-    client: 'mysql',
-    connection: {
-      host: Env.get('DB_AGING_HOST'),
-      port: Env.get('DB_AGING_PORT'),
-      user: Env.get('DB_AGING_USER'),
-      password: Env.get('DB_AGING_PASSWORD'),
-      database: Env.get('DB_AGING_DATABASE_UGM')
-    }
-  },
-  dueg: {
-    client: 'mysql',
-    connection: {
-      host: Env.get('DB_AGING_HOST'),
-      port: Env.get('DB_AGING_PORT'),
-      user: Env.get('DB_AGING_USER'),
-      password: Env.get('DB_AGING_PASSWORD'),
-      database: Env.get('DB_AGING_DATABASE_2G')
-    }
-  },
-  piuenergie: {
-    client: 'mysql',
-    connection: {
-      host: Env.get('DB_AGING_HOST'),
-      port: Env.get('DB_AGING_PORT'),
-      user: Env.get('DB_AGING_USER'),
-      password: Env.get('DB_AGING_PASSWORD'),
-      database: Env.get('DB_AGING_DATABASE_PIUENERGIE')
-    }
-  },
-  semplice: {
-    client: 'mysql',
-    connection: {
-      host: Env.get('DB_AGING_HOST'),
-      port: Env.get('DB_AGING_PORT'),
-      user: Env.get('DB_AGING_USER'),
-      password: Env.get('DB_AGING_PASSWORD'),
-      database: Env.get('DB_AGING_DATABASE_SEMPLICE')
-    }
-  },
-  terranova: {
-    client: 'mssql',
-    connection: {
-      host: Env.get('DB_TERRANOVA_HOST'),
-      port: Number(Env.get('DB_TERRANOVA_PORT')),
-      user: Env.get('DB_TERRANOVA_USER'),
-      password: Env.get('DB_TERRANOVA_PASSWORD'),
-      database: Env.get('DB_TERRANOVA_DATABASE'),
-      trustServerCertificate: true
-    }
-  },
-  aurah: {
-    client: 'mysql',
-    connection: {
-      host: Env.get('DB_AGING_HOST'),
-      port: Env.get('DB_AGING_PORT'),
-      user: Env.get('DB_AGING_USER'),
-      password: Env.get('DB_AGING_PASSWORD'),
-      database: Env.get('DB_AGING_DATABASE_AURAH')
-    }
-  },
+  
   contendibilita: {
     client: 'pg',
     connection: {
@@ -183,8 +70,9 @@ module.exports = {
       password: Env.get('DB_CONTENDIBILITA_PASSWORD', ''),
       database: Env.get('DB_CONTENDIBILITA_DATABASE', 'adonis')
     }
-  },
-  
+  }
+ 
+ /*
   emailmassivo: {
     client: 'mysql',
     connection: {
@@ -196,19 +84,6 @@ module.exports = {
     }
   },
   
-  dbbi: {
-    client: 'mssql',
-    connection: {
-      host: Env.get('DB_BI_HOST'),
-      port: Number(Env.get('DB_BI_PORT')),
-      user: Env.get('DB_BI_USER'),
-      password: Env.get('DB_BI_PASSWORD'),
-      database: Env.get('DB_BI_DATABASE'),
-      trustServerCertificate: true,
-	  requestTimeout : 500000,
-	  connectionTimeout: 150000
-    }
-  }
-
-
+  */
+  
 }

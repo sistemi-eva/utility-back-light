@@ -887,6 +887,7 @@ class RcuEnergiaCcController {
   async getLastImport({ request, response }) {
     try {
       let query = await Database.connection("rcu").raw(`select "MESE","ANNO" from ${request.headers().tenant_ee}.ee_cc ec order by "ANNO" desc,"MESE" desc limit 1 `);
+
       return response.send({
         status: "success",
         data: query.rows,

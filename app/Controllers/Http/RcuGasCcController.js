@@ -77,6 +77,8 @@ let month = {
 class RcuGasCcController {
 
   async getLastImport({request,response}){
+	  
+
     try {
       let query = await Database.connection('rcu')
       .raw(`select "MESE","ANNO" from ${request.headers().tenant_gas}.gas_cc ec order by "ANNO" desc,"MESE" desc limit 1 `)

@@ -88,10 +88,19 @@ class RcuEnergiaUddController {
   async statusCache({ response, request }) {
     try {
       let tenant = request.headers().tenant_ee;
+	  console.log("tenantino")
+	  console.log(tenant)
       let query = await Database.connection("rcu").raw(`select "MESE","ANNO" from ${tenant}.ee_udd ec order by "ANNO" desc,"MESE" desc limit 1 `);
       let RedisController = use(`App/Controllers/Http/RedisRouteController`);
       const RedisClass = new RedisController();
-      let final_value = await RedisClass.statusCache(tenant, name_controller, query.rows[0].MESE, query.rows[0].ANNO);
+	  console.log(query.rows)
+	  
+	  if( query.rows[0] !== undefined ){
+		var final_value = await RedisClass.statusCache(tenant, name_controller, query.rows[0].MESE, query.rows[0].ANNO);  
+	  }
+	  else{
+		var final_value = []
+	  }
       return response.send({ status: "success", data: final_value, message: `` });
     } catch (error) {
       return response.status(500).send({ status: "error", code: 500, data: null, message: error.message });
@@ -128,6 +137,8 @@ class RcuEnergiaUddController {
   async getLastImport({ request, response }) {
     try {
       let query = await Database.connection("rcu").raw(`select "MESE","ANNO" from ${request.headers().tenant_ee}.ee_udd ec order by "ANNO" desc,"MESE" desc limit 1 `);
+	  
+
       return response.send({ status: "success", data: query.rows, message: `Ritorno di tutti le informazioni necessarie per la dashboard` });
     } catch (error) {
       return response.status(500).send({ status: "error", code: 500, data: null, message: error.message });
