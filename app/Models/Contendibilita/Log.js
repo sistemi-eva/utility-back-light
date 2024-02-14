@@ -15,11 +15,11 @@ class LogContendibilita extends Model {
 
 
   static get connection() {
-    return 'contendibilita'
+    return 'rcu'
   }
 
   static get table() {
-    return 'logs'
+	return `${this.myschema}.cont_logs`
   }
 
   getData(data) {

@@ -12,16 +12,29 @@ const moment = require("moment")
 const fs = require('fs');
 class ContendibilitaController {
     async parseXlsFile({ request, response }){
+		
+		
       var { commodity, distributore, lastImportId, closeImport, pivot } = request.all()
       // const commodity = 'gas'; const distributore = '2iretegas'; const lastImportId = null;
 	  
+	  var tenant = request.headers().tenant_gas
+	  ImportsContendibilita.myschema = tenant
+	  TemplateContendibilita.myschema = tenant
+	  TemplateMappingContendibilita.myschema = tenant
 	  
-
       const xlsx_file = await request.file('xlsx_file')
+	  
+	  if(xlsx_file.extname != "xlsx" && xlsx_file.extname != "xls" ) {
+			return response.status(200).send({
+			  status: 'noData',
+			  message: 'Sono accettati solo i file xls ed xlsx',
+			  data: [],
+			})
+		}
 	
       // const xlsx_file = { tmpPath: 'utility/contendibilita/' + commodity + '_' + distributore + '.xls'}
 
-      const DB = Database.connection('contendibilita')
+      const DB = Database.connection('rcu')
 
       // console.log(closeImport)
 
@@ -104,14 +117,13 @@ class ContendibilitaController {
 	  
 	  }
 
-      const dbTableName = `${commodity}_${distributore}`
+      const dbTableName = `${tenant}.cont_{commodity}_${distributore}`
       const dbTrx = await DB.beginTransaction()
 
       let tmpTableExist = false
       await DB.raw(`SELECT EXISTS (
         SELECT FROM information_schema.tables
-        WHERE table_schema = 'public'
-        AND table_name   = '${dbTableName}_tmp'
+        WHERE table_name   = '${dbTableName}_tmp'
       )`).then(
         (response) => {
           tmpTableExist = response.rows && response.rows[0] && response.rows[0].exists
@@ -246,8 +258,7 @@ class ContendibilitaController {
         // copio dati sulla tebella di produzione e resetto tutto
         await DB.raw(`SELECT EXISTS (
           SELECT FROM information_schema.tables
-          WHERE table_schema = 'public'
-          AND table_name   = '${dbTableName}_bk'
+          WHERE table_name   = '${dbTableName}_bk'
         )`).then(
           async (response) => {
             if(response.rows && response.rows[0] && response.rows[0].exists) {
@@ -282,7 +293,8 @@ class ContendibilitaController {
       }
     }
 
-    async listTemplates({response}) {
+    async listTemplates({request, response}) {
+		TemplateContendibilita.myschema = request.headers().tenant_gas
       console.log(await TemplateContendibilita.all())
       return response.send('ok')
     }
@@ -296,6 +308,9 @@ class ContendibilitaController {
       const distributore = request.input("distributore", '')
       const stato = request.input("stato", '')
       console.log(date_end, date_start, commodity, distributore, stato)
+	  
+	  ImportsContendibilita.myschema = request.headers().tenant_gas
+	  
       const query = ImportsContendibilita.query()
       if(date_end.length > 0) {
         const end = moment(date_end, 'DD/MM/YYYY').add(1, 'days').format('YYYY-MM-DD 00:00')
@@ -324,6 +339,8 @@ class ContendibilitaController {
       const date_end = request.input("date_end", '')
       const date_start = request.input("date_start", '')
       const search = request.input("search_text", '')
+	  
+	  LogContendibilita.myschema = request.headers().tenant_gas
       const query = LogContendibilita.query()
       if(date_end.length > 0) {
         const end = moment(date_end, 'DD/MM/YYYY').add(1, 'days').format('YYYY-MM-DD 00:00')
@@ -350,6 +367,11 @@ class ContendibilitaController {
       const pdp = request.input("pdp", '')
       const misuratore = request.input("misuratore", '')
       const eneltel = request.input("eneltel", '')
+	  
+	   var tenant = request.headers().tenant_gas
+	   
+	   TemplateContendibilita.myschema = tenant
+	   TemplateMappingContendibilita.myschema = tenant
 
       if(!commodity || !distributore) {
         return response.status(422).send({
@@ -386,8 +408,8 @@ class ContendibilitaController {
 	  
 	  
 
-      const DB = Database.connection('contendibilita')
-      const dbTableName = `${commodity}_${distributore}`
+      const DB = Database.connection('rcu')
+      const dbTableName = `${tenant}.cont_${commodity}_${distributore}`
 
       const keyProp = commodity == 'gas' ? 'pdr' : 'pod'
       let whereClausule = `1=1 AND (`

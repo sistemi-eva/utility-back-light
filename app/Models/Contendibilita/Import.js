@@ -12,11 +12,11 @@ class ImportContendibilita extends Model {
   }
 
   static get connection() {
-    return 'contendibilita'
+    return 'rcu'
   }
 
   static get table() {
-    return 'imports'
+    return `${this.myschema}.cont_imports`
   }
 
   getData(data) {

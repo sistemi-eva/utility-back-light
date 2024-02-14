@@ -11,11 +11,12 @@ class TemplateContendibilita extends Model {
     }
  
     static get connection() {
-      return 'contendibilita'
+      return 'rcu'
     }
 
     static get table() {
-      return 'templates'
+	  return `${this.myschema}.cont_templates`
+	  
     }
 
   
