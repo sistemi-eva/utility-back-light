@@ -184,11 +184,11 @@ class AuthController {
 			const DB = Database.connection('rcu')
 		  
 			if( tenant != "all" ){
-				var result = await DB.raw(`SELECT * FROM public.utenti WHERE tenant = ?`, [tenant])
+				var result = await DB.raw(`SELECT username, ruolo, tenant, nominativo FROM public.utenti WHERE tenant = ?`, [tenant])
 			  
 			}
 			else{
-				var result = await DB.raw(`SELECT * FROM public.utenti WHERE tenant <> ?`, [tenant])
+				var result = await DB.raw(`SELECT username, ruolo, tenant, nominativo FROM public.utenti WHERE tenant <> ?`, [tenant])
 			}
 			var users = result.rows
 		  

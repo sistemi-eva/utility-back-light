@@ -59,17 +59,6 @@ module.exports = {
       password: Env.get('DB_RCU_PASSWORD', ''),
       database: Env.get('DB_RCU_DATABASE', 'adonis')
     }
-  },
-  
-  contendibilita: {
-    client: 'pg',
-    connection: {
-      host: Env.get('DB_CONTENDIBILITA_HOST', 'localhost'),
-      port: Env.get('DB_CONTENDIBILITA_PORT', ''),
-      user: Env.get('DB_CONTENDIBILITA_USER', 'root'),
-      password: Env.get('DB_CONTENDIBILITA_PASSWORD', ''),
-      database: Env.get('DB_CONTENDIBILITA_DATABASE', 'adonis')
-    }
   }
  
  /*

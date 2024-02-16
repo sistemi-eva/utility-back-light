@@ -387,7 +387,7 @@ class ContendibilitaController {
       const eneltel = request.input("eneltel", '')
 	  
 	   var tenant = request.headers().tenant_gas
-	   
+	   LogContendibilita.myschema = tenant
 	   TemplateContendibilita.myschema = tenant
 	   TemplateMappingContendibilita.myschema = tenant
 
@@ -470,7 +470,7 @@ class ContendibilitaController {
       }
       whereClausule += ' )'
       
-	  console.log(`SELECT * FROM ${dbTableName} where ${whereClausule}`)
+	 
 	 
       const queryResults = await DB.raw(`SELECT * FROM ${dbTableName} where ${whereClausule}`)
 
