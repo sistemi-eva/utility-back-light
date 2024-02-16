@@ -3,10 +3,10 @@
 const XLSX = require('xlsx');
 const Excel = require('exceljs');
 const Token = use('App/Models/Token')
-const ImportsContendibilita = use('App/Models/Contendibilita/Import')
-const TemplateContendibilita = use('App/Models/Contendibilita/Template')
-const TemplateMappingContendibilita = use('App/Models/Contendibilita/TemplateMapping')
-const LogContendibilita = use('App/Models/Contendibilita/Log')
+var ImportsContendibilita = use('App/Models/Contendibilita/Import')
+var TemplateContendibilita = use('App/Models/Contendibilita/Template')
+var TemplateMappingContendibilita = use('App/Models/Contendibilita/TemplateMapping')
+var LogContendibilita = use('App/Models/Contendibilita/Log')
 const Database = use('Database')
 const moment = require("moment")
 const fs = require('fs');
@@ -83,6 +83,9 @@ class ContendibilitaController {
       var mapping = null
       try {
         template = await TemplateContendibilita.query().where('commodity', commodity).where('distributore', distributore).first();
+		
+		console.log(template)
+		
         const mappingQuery = await TemplateMappingContendibilita.query().where('template_id', template.id).fetch()
         mapping = mappingQuery.toJSON()
 		
@@ -117,13 +120,14 @@ class ContendibilitaController {
 	  
 	  }
 
-      const dbTableName = `${tenant}.cont_{commodity}_${distributore}`
+      const dbTableName = `${tenant}.cont_${commodity}_${distributore}`
       const dbTrx = await DB.beginTransaction()
 
       let tmpTableExist = false
       await DB.raw(`SELECT EXISTS (
         SELECT FROM information_schema.tables
-        WHERE table_name   = '${dbTableName}_tmp'
+        WHERE table_schema = '${tenant}'
+        AND table_name   = 'cont_${commodity}_${distributore}_tmp'
       )`).then(
         (response) => {
           tmpTableExist = response.rows && response.rows[0] && response.rows[0].exists
@@ -135,8 +139,12 @@ class ContendibilitaController {
 
       if(!tmpTableExist) {
         try {
+			console.log(`CREATE TABLE ${dbTableName}_tmp (LIKE ${dbTableName})`)
           await DB.raw(`CREATE TABLE ${dbTableName}_tmp (LIKE ${dbTableName})`)
+		 
           if(!lastImportId) {
+			  
+			
             const importObj = await ImportsContendibilita.create({
               commodity,
               distributore,
@@ -149,7 +157,17 @@ class ContendibilitaController {
           }
         } catch(error) {
           console.log(error)
-          await DB.raw(`DROP TABLE ${dbTableName}_tmp`)
+		  
+		  
+		  try{
+			  await DB.raw(`DROP TABLE ${dbTableName}_tmp`)
+		  }
+		  catch(e){
+		  }
+          
+		  
+		  
+		  
           return response.status(500).send({
             status: 'DbError',
             message: 'impossibile creare tabella temporanea su DB',

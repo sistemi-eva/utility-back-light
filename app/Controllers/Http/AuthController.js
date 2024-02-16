@@ -288,7 +288,7 @@ class AuthController {
 					return response.status(200).send({"status": "error", "message": 'Errore già esiste un utente con questo nome'})
 				}
 			  
-				console.log(myusername)
+			
 			
 			    var result = await Database.connection("rcu").table(`public.utenti`).insert({ username: username, password: mypassword, tenant: tenant, ruolo: ruolo, nominativo: nominativo})
 			  
@@ -908,7 +908,7 @@ class AuthController {
 			
 			
 			await DB.raw(`CREATE TABLE ${tenant}.cont_imports (
-				id int4 NOT NULL,
+				id SERIAL,
 				"data" timestamp NULL DEFAULT now(),
 				stato varchar(50) NULL DEFAULT 'aperto'::character varying,
 				distributore varchar(50) NULL,
