@@ -21,8 +21,8 @@ const table =
   'DISALIMENTABILITA',
   'DATA_INIZIO_FOR',
   'DATA_FINE_FOR',
-  'RAGIONE_SOCIALE_UDD',
-  'PIVA_UDD',
+  //'RAGIONE_SOCIALE_UDD',
+  //'PIVA_UDD',
   'RAGIONE_SOCIALE_DD',
   'PIVA_DD',
   'CF',
@@ -47,14 +47,14 @@ const table =
   'COEFF_CORR',
   'BONUS',
   'BS_DATA_INIZIO',
-  'BS_DATA_FINE',
-  'BS_DATA_RINNOVO']
+  'BS_DATA_FINE'
+  ]
     
 const NotNull = [
   'COD_PDR',
   'DATA_INIZIO_FOR',
-  'RAGIONE_SOCIALE_UDD',
-  'PIVA_UDD',
+  //'RAGIONE_SOCIALE_UDD',
+  //'PIVA_UDD',
   'RAGIONE_SOCIALE_DD',
   'PIVA_DD',
   'PREL_ANNUO_PREV',
@@ -197,20 +197,21 @@ class RcuGasUddController {
   }
 
   async deleteRowField({response,request}){
-    const trx = await Database.connection('rcu').beginTransaction()
+    const trx = await Database.connection("rcu").beginTransaction();
     try {
-      const key_code = request.header('Secret-Key')
-      var tokenUser = await Token.query().where('token','=',key_code).first()
-      var {id} = request.all()
-      const fatt = await RcuGasUddHistory.find(id)
-      await RcuGasUdd.query().where('gas_udd_histories_id',id).delete(trx)
-      fatt.merge({deleted:true,delete_owner: tokenUser.username, delete_owner_ip:tokenUser.ip_address})
-      await fatt.save()
-      trx.commit()
-      return response.send({"status": "success","data": await RcuGasUddHistory.query().where('deleted',false).orderBy('created_at','desc').fetch(),"message": null})
+      const key_code = request.header("Secret-Key");
+      var tokenUser = await Token.query().where("token", "=", key_code).first();
+      var { id } = request.all();
+      await trx
+        .table(request.headers().tenant_gas + ".gas_udd")
+        .where("gas_udd_histories_id", id)
+        .delete();
+      await trx.table(`${request.headers().tenant_gas}.gas_udd_histories`).where("id", id).update({ deleted: true, delete_owner: tokenUser.username, delete_owner_ip: tokenUser.ip_address });
+      await trx.commit();
+      return response.send({ status: "success", data: await Database.connection("rcu").table(`${request.headers().tenant_gas}.gas_udd_histories`).where("deleted", false).orderBy("created_at", "desc"), message: null });
     } catch (error) {
-      trx.rollback
-      return response.status(500).send({"status": "error","code": 500,"data": null,"message": error.message})
+      trx.rollback;
+      return response.status(500).send({ status: "error", code: 500, data: null, message: error.message });
     }
   }
 
@@ -801,10 +802,16 @@ class RcuGasUddController {
     try {
       const {anno,mese} = request.all()
       const query=  await Database.connection('rcu')
-      .raw(`select "RAGIONE_SOCIALE_UDD" as societa, 
+      .raw(`select "RAGIONE_SOCIALE_DD" as societa, 
       count(DISTINCT"COD_PDR") as pod,
       ROUND(sum(cast(replace("PREL_ANNUO_PREV",',','.')  as numeric)) ,2) as gwh
-      from ${request.headers().tenant_gas}.gas_udd fr where "ANNO" = ? and "MESE" = ? group by "RAGIONE_SOCIALE_UDD" order by pod desc`,[anno,mese])
+      from ${request.headers().tenant_gas}.gas_udd fr where "ANNO" = ? and "MESE" = ? group by "RAGIONE_SOCIALE_DD" order by pod desc`,[anno,mese])
+	  
+	console.log(`select "RAGIONE_SOCIALE_DD" as societa, 
+      count(DISTINCT"COD_PDR") as pod,
+      ROUND(sum(cast(replace("PREL_ANNUO_PREV",',','.')  as numeric)) ,2) as gwh
+      from ${request.headers().tenant_gas}.gas_udd fr where "ANNO" = ? and "MESE" = ? group by "RAGIONE_SOCIALE_DD" order by pod desc`)
+	  
       return response.send({"status": "success","data": query.rows,"message": `Ritorno di tutti le informazioni necessarie per la dashboard`})
     } catch (error) {
       return response.status(500).send({"status": "error","code": 500,"data": null,"message": error.message})
@@ -887,7 +894,7 @@ class RcuGasUddController {
     try {
       const key_code = request.header('Secret-Key')
       var tokenUser = await Token.query().where('token','=',key_code).first()
-      await this.zipFile(fatturazione_file,mese,anno,tokenUser)
+      await this.zipFile(fatturazione_file,mese,anno,tokenUser, request)
       return response.send({"status": "success","data": "","message": `Importazione avviata `})
     } catch (error) {
       console.log("erro",error)
@@ -896,7 +903,7 @@ class RcuGasUddController {
     }
   }
 
-  async zipFile(zip_file_name,mese,anno,tokenUser){
+  async zipFile(zip_file_name,mese,anno,tokenUser, request){
     try {
       const unzipper = require('unzipper');
       let buffer = fsExtra.readFileSync(Env.get('RCU_PATH') + '/' + zip_file_name)
@@ -904,7 +911,7 @@ class RcuGasUddController {
       for(let i in directory.files) {
         var parentBuffer = await unzipper.Open.buffer( await directory.files[i].buffer());
         for(let b in parentBuffer.files) {
-          await this.generateCsv(parentBuffer.files[b],mese,anno,tokenUser)
+          await this.generateCsv(parentBuffer.files[b],mese,anno,tokenUser, request)
         }
       }
       fsExtra.unlinkSync(Env.get('RCU_PATH') + '/' + zip_file_name)
@@ -913,18 +920,16 @@ class RcuGasUddController {
     }
   }
 
-  async generateCsv(csv,mese,anno,tokenUser){
+  async generateCsv(csv,mese,anno,tokenUser, request){
+	console.log(request.headers().tenant_gas)
     const trx = await Database.connection('rcu').beginTransaction()
     let fattLog = null
-    let checkExist = await RcuGasUddHistory.query().where('note',csv.path).where(inner => {inner.where('status','completato').orWhere('status','in lavorazione')}).whereNot('deleted',true).first()
+    let checkExist = await Database.connection("rcu").table(`${request.headers().tenant_gas}.gas_udd_histories`).where("note", csv.path)
+    .where(inner => {inner.where('status','completato').orWhere('status','in lavorazione')}).whereNot('deleted',true);
+    
     try{
-      if(!checkExist){
-      fattLog = await RcuGasUddHistory.create(
-        {note:csv.path,mese:mese,anno:anno,
-          importati:0,
-          status:'in lavorazione',
-          owner: tokenUser.username,
-          owner_ip:tokenUser.ip_address})
+      if(checkExist.length == 0){
+      fattLog = await Database.connection("rcu").table(`${request.headers().tenant_gas}.gas_udd_histories`).insert({ note: csv.path, mese: mese, anno: anno, importati: 0, status: "in lavorazione", owner: tokenUser.username, owner_ip: tokenUser.ip_address }).returning("id");
          var counterTotal = 0
           var csvBuffer = await csv.buffer()
           var datafile = csvBuffer.toString()
@@ -932,6 +937,7 @@ class RcuGasUddController {
           .split('\n') // split string to lines
           .map(e => e.trim()) // remove white spaces for each line
           .map(e => e.split(';').map(e => e.trim())); // split each line to array
+          
           //GET POSITION
           const positionObject = {}
           const positionArray = []
@@ -946,16 +952,15 @@ class RcuGasUddController {
           }
           
           //CONTROLLA CAMPI OBBLIGATORI
-          for(let i in table) {
-            // console.log("datafile[0]",datafile[0])
-            // console.log("!datafile[0].includes(NotNull[i])",!datafile[0].includes(NotNull[i]))
-            if(!datafile[0].includes(table[i])) 
-            {console.log(table[i])
+          for(let i in NotNull) {
+            if(!datafile[0].includes(NotNull[i])) 
+            {console.log("not null" , NotNull[i])
               throw {}}
           }
           
           //INIZIO CREAZIONE ON DB
           for(let i in datafile) {
+          
             if(i == 0) continue
             let tempObject = {}
             for(let b in datafile[i]){
@@ -965,27 +970,43 @@ class RcuGasUddController {
               }
             }
             if(Object.keys(tempObject).length>0){
-              counterTotal = counterTotal +1
               tempObject = {...tempObject,MESE:mese,ANNO:anno}
-              if(i == 1){
-                let check = await RcuGasUdd.findBy(tempObject)
-                if(check)throw {}
+              if (i == 1) {
+                let check = trx.table(request.headers().tenant_gas + ".gas_udd");
+                for (const [key, value] of Object.entries(tempObject)) {
+                  check.where(key, value);
+                }
+                check = await check;
+                // await RcuEnergiaUdd.findBy(tempObject)
+                if (check.length > 0) throw {};
               }
+              // console.log("tempObject.PIVA_UDD",tempObject.PIVA_UDD)
               // if(!check) 
-              await RcuGasUdd.create({...tempObject,gas_udd_histories_id: fattLog.id}, trx)
+              // if(tempObject.PIVA_UDD == '03163990611' || tempObject.PIVA_UDD == '3163990611') {
+                counterTotal = counterTotal +1
+              
+				try{
+					await trx.table(request.headers().tenant_gas + ".gas_udd").insert({ ...tempObject, gas_udd_histories_id: fattLog[0] });
+				
+				}
+				catch(e){
+					console.log("mycatch", e);
+				}
+              
+			  
+			  // } 
             }
           }
-          fattLog.merge({importati:counterTotal,status:'completato'})
-          await fattLog.save()
-          trx.commit()
+          await trx.table(`${request.headers().tenant_gas}.gas_udd_histories`).where("id", fattLog[0]).update({ importati: counterTotal, status: "completato" });
+          trx.commit();
       } else{ console.log("gia esistente")}
       return 'Completato'
     }catch(e){
-      console.log("e",e)
-      trx.rollback()
-      fattLog.merge({importati:0,status:'in errore'})
-      await fattLog.save()
-      // throw e
+      console.log("eeeeeeeeeee",e)
+
+      trx.rollback();
+      await Database.connection("rcu").table(`${request.headers().tenant_gas}.gas_udd_histories`).table(`${request.headers().tenant_gas}.gas_udd_histories`).where("id", fattLog[0]).update({ importati: 0, status: "in errore" });
+      throw e
     }
   }
 
