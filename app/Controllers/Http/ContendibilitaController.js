@@ -1,4 +1,4 @@
-'use strict'
+'use strict';
 
 const XLSX = require('xlsx');
 const Excel = require('exceljs');
@@ -16,7 +16,7 @@ class ContendibilitaController {
 		
       var { commodity, distributore, lastImportId, closeImport, pivot } = request.all()
       // const commodity = 'gas'; const distributore = '2iretegas'; const lastImportId = null;
-	  //console.log("ciao");
+
 	  var tenant = request.headers().tenant_gas
 	  ImportsContendibilita.myschema = tenant
 	  TemplateContendibilita.myschema = tenant
