@@ -498,6 +498,8 @@ class AuthController {
 				
 			    var result = await DB.raw(`UPDATE tenant SET tenant = ?, descrizione = ?, udd = ?, cc = ?  WHERE tenant = ?`, [tenant, descrizione, udd, cc, _tenant])
 								
+				var result = await DB.raw(`UPDATE utenti SET tenant = ? WHERE username = ?`, [tenant, myusername])
+
 				result = await DB.raw(`ALTER SCHEMA ${_tenant} RENAME TO ${tenant};`)
 										
 			  

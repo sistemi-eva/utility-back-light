@@ -18,6 +18,7 @@ class ContendibilitaController {
       // const commodity = 'gas'; const distributore = '2iretegas'; const lastImportId = null;
 
 	  var tenant = request.headers().tenant_gas
+	 
 	  ImportsContendibilita.myschema = tenant
 	  TemplateContendibilita.myschema = tenant
 	  TemplateMappingContendibilita.myschema = tenant
@@ -318,6 +319,8 @@ class ContendibilitaController {
     }
 
     async listImports({request,response}) {
+		
+		
       const page = request.input("page", 1)
       const perPage = request.input("perPage", 25)
       const date_end = request.input("date_end", '')
@@ -349,6 +352,8 @@ class ContendibilitaController {
       }
       const imports = await query.with('template').orderBy('data', 'desc').paginate(page || 1, perPage)
       return response.send(imports)
+	  
+	  
     }
 
     async listLogs({request,response}) {
