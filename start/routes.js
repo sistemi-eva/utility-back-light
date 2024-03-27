@@ -16,14 +16,14 @@
 /** @type {typeof import('@adonisjs/framework/src/Route/Manager')} */
 'use strict'
 const Route = use('Route')
-
+/*
 Route.get('', ({ view }) => {
   return view.render('welcome')
 })
 Route.get('/api', ({ view }) => {
   return 'working!'//'view.render('welcome')
 })
-
+*/
 Route.get('/update_cache', 'RedisRouteController.updateCacheImport')
 
 
