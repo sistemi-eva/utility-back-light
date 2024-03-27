@@ -48,7 +48,7 @@
     "csv-writer": "^1.6.0",
     "csvtojson": "^2.0.10",
     "esm": "^3.2.25",
-    "exceljs": "^4.3.0",
+    "exceljs": "^4.4.0",
     "form-data": "^3.0.0",
     "fs-extra": "^9.0.1",
     "https": "^1.0.0",

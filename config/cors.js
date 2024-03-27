@@ -16,7 +16,7 @@ module.exports = {
   | Function - Receives the current origin and should return one of the above values.
   |
   */
-  origin: "http://dahsboardagenti.evaenergyservice.it,http://utility.evaenergyservice.it,http://localhost:4000,http://localhost:56559",
+	origin: "http://192.168.229.2:4000,https://utility.evasolutions.it",	
 
   /*
   |--------------------------------------------------------------------------

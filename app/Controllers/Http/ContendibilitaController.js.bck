@@ -1,8 +1,8 @@
 'use strict';
-
 const XLSX = require('xlsx');
 const Excel = require('exceljs');
-const Token = use('App/Models/Token')
+
+const Token = use('App/Models/Token');
 var ImportsContendibilita = use('App/Models/Contendibilita/Import')
 var TemplateContendibilita = use('App/Models/Contendibilita/Template')
 var TemplateMappingContendibilita = use('App/Models/Contendibilita/TemplateMapping')
@@ -10,6 +10,8 @@ var LogContendibilita = use('App/Models/Contendibilita/Log')
 const Database = use('Database')
 const moment = require("moment")
 const fs = require('fs');
+
+
 class ContendibilitaController {
     async parseXlsFile({ request, response }){
 		
@@ -18,7 +20,6 @@ class ContendibilitaController {
       // const commodity = 'gas'; const distributore = '2iretegas'; const lastImportId = null;
 
 	  var tenant = request.headers().tenant_gas
-	 
 	  ImportsContendibilita.myschema = tenant
 	  TemplateContendibilita.myschema = tenant
 	  TemplateMappingContendibilita.myschema = tenant
@@ -319,8 +320,6 @@ class ContendibilitaController {
     }
 
     async listImports({request,response}) {
-		
-		
       const page = request.input("page", 1)
       const perPage = request.input("perPage", 25)
       const date_end = request.input("date_end", '')
@@ -352,8 +351,6 @@ class ContendibilitaController {
       }
       const imports = await query.with('template').orderBy('data', 'desc').paginate(page || 1, perPage)
       return response.send(imports)
-	  
-	  
     }
 
     async listLogs({request,response}) {
@@ -362,7 +359,7 @@ class ContendibilitaController {
       const date_end = request.input("date_end", '')
       const date_start = request.input("date_start", '')
       const search = request.input("search_text", '')
-	console.log(request.headers().tenant_gas)
+	  
 	  LogContendibilita.myschema = request.headers().tenant_gas
       const query = LogContendibilita.query()
       if(date_end.length > 0) {
@@ -619,4 +616,3 @@ class ContendibilitaController {
 }
 
 module.exports = ContendibilitaController
-
