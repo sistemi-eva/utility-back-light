@@ -179,7 +179,7 @@ class AuthController {
 	 
 	}
   
-	async getUsersFromTenant(tenant){
+	async getUsersFromTenant(tenant, username){
 		try{
 			const DB = Database.connection('rcu')
 		  
@@ -188,7 +188,15 @@ class AuthController {
 			  
 			}
 			else{
-				var result = await DB.raw(`SELECT username, ruolo, tenant, nominativo FROM public.utenti WHERE tenant <> ?`, [tenant])
+				
+				if ( await this.userIsRuolo(username, "admin")) {
+					var result = await DB.raw(`SELECT username, ruolo, tenant, nominativo FROM public.utenti`)
+				}
+				else{
+					var result = await DB.raw(`SELECT username, ruolo, tenant, nominativo FROM public.utenti WHERE tenant <> ?`, [tenant])
+				}
+				
+				
 			}
 			var users = result.rows
 		  
@@ -218,7 +226,7 @@ class AuthController {
 		  
 			var tenant = await this.getTenantFromUsername(username)
 		  
-			var users = await this.getUsersFromTenant(tenant)
+			var users = await this.getUsersFromTenant(tenant, username)
 			
 			return response.send({"status": "success","data": users, "message": `utenti`})
 		}
