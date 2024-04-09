@@ -189,7 +189,8 @@ class AuthController {
 			}
 			else{
 				
-				if ( await this.userIsRuolo(username, "admin")) {
+				var isAdmin = await this.userIsRuolo(username, "admin");
+				if ( isAdmin ) {
 					var result = await DB.raw(`SELECT username, ruolo, tenant, nominativo FROM public.utenti`)
 				}
 				else{
